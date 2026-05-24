@@ -8,32 +8,30 @@
   <meta name="theme-color" content="#0f172a" />
   <title>Softball Outfield Tracker</title>
   <style>
-    :root {
-      --bg:#f8fafc; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#cbd5e1;
-      --accent:#0f172a; --soft:#f1f5f9; --green:#dcfce7; --yellow:#fef9c3; --red:#fee2e2;
+    :root{
+      --bg:#f8fafc;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:#cbd5e1;
+      --accent:#0f172a;--soft:#f1f5f9;--green:#dcfce7;--yellow:#fef9c3;--red:#fee2e2;--blue:#dbeafe;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);padding:12px}
-    .app{max-width:900px;margin:auto;padding-bottom:90px}
+    .app{max-width:900px;margin:auto;padding-bottom:100px}
     .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 8px rgba(15,23,42,.06)}
-    h1,h2,h3{margin:0}
-    .muted{color:var(--muted);font-size:13px}
+    h1,h2,h3{margin:0}.muted{color:var(--muted);font-size:13px}
     .top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
     input,textarea,select{width:100%;font-size:16px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff}
     textarea{min-height:64px;resize:vertical}
     button{border:0;border-radius:12px;padding:11px 12px;font-size:15px;font-weight:800;background:var(--accent);color:#fff}
-    button.secondary{background:#e2e8f0;color:var(--ink)}
-    button.danger{background:#dc2626;color:#fff}
-    button.good{background:#16a34a;color:#fff}
+    button.secondary{background:#e2e8f0;color:var(--ink)}button.danger{background:#dc2626;color:#fff}
+    button.good{background:#16a34a;color:#fff}button.blue{background:#2563eb;color:#fff}
     button.small{padding:8px 10px;font-size:13px}
-    .grid{display:grid;gap:8px}
-    .grid2{grid-template-columns:1fr 1fr}
-    .grid3{grid-template-columns:repeat(3,1fr)}
-    .grid4{grid-template-columns:repeat(4,1fr)}
+    .grid{display:grid;gap:8px}.grid2{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:repeat(3,1fr)}.grid4{grid-template-columns:repeat(4,1fr)}
     .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
     .pill{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+    .score{background:#0f172a;color:#fff;border-radius:16px;padding:14px;text-align:center}
+    .score .big{font-size:34px}
     .big{font-size:27px;font-weight:950}
-    .base.on{background:var(--green);border:1px solid #22c55e}
+    .base{position:relative}.base.on{background:var(--green)!important;border:1px solid #22c55e!important}
+    .base.runner{background:var(--blue)!important;border:1px solid #3b82f6!important}
     .tag{display:inline-block;background:#e2e8f0;border-radius:999px;padding:4px 8px;font-size:12px;margin-top:5px}
     .row{border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px;margin-bottom:8px}
     .row.active{border:2px solid var(--ink);background:#f8fafc}
@@ -42,27 +40,35 @@
     .history{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;font-size:13px;background:#0f172a;color:#e2e8f0;padding:12px;border-radius:12px;max-height:220px;overflow:auto}
     .sticky{position:sticky;bottom:0;background:rgba(248,250,252,.95);backdrop-filter:blur(8px);padding-top:10px;border-top:1px solid var(--line)}
     .modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:50;padding:12px;overflow:auto}
-    .modal.show{display:block}
-    .modal-card{background:#fff;border-radius:18px;padding:14px;max-width:620px;margin:30px auto}
+    .modal.show{display:block}.modal-card{background:#fff;border-radius:18px;padding:14px;max-width:620px;margin:30px auto}
     .warning{background:var(--yellow);border:1px solid #facc15;border-radius:12px;padding:10px;font-size:13px}
-    @media(max-width:540px){.quick{grid-template-columns:repeat(3,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.big{font-size:23px}}
+    @media(max-width:540px){.quick{grid-template-columns:repeat(3,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.big{font-size:23px}.score .big{font-size:30px}}
   </style>
 </head>
 <body>
 <div class="app">
   <div class="card">
     <div class="top">
-      <div>
-        <h1>Softball Outfield Tracker</h1>
-        <div class="muted">Now with editable AB history</div>
-      </div>
+      <div><h1>Softball Outfield Tracker</h1><div class="muted">Score + runner tracking + editable AB history</div></div>
       <button class="secondary small" onclick="openNewGame()">New Game</button>
     </div>
     <div class="grid grid2" style="margin-top:12px">
-      <input id="teamName" placeholder="Team name" oninput="state.team=this.value;persist()" />
+      <input id="teamName" placeholder="Opponent team name" oninput="state.team=this.value;persist()" />
       <select id="lineupSize" onchange="setLineupSize(Number(this.value))">
         <option value="9">9 batters</option><option value="10">10 batters</option><option value="11">11 batters</option><option value="12">12 batters</option><option value="13">13 batters</option><option value="14">14 batters</option>
       </select>
+    </div>
+  </div>
+
+  <div class="score">
+    <div class="muted" style="color:#cbd5e1">Live Score</div>
+    <div class="big"><span id="ourScore">0</span> - <span id="oppScore">0</span></div>
+    <div class="muted" style="color:#cbd5e1"><span id="ourLabel">Us</span> vs <span id="oppLabel">Opponent</span></div>
+    <div class="grid grid4" style="margin-top:10px">
+      <button class="blue" onclick="addRun('opp',1)">Opp +1</button>
+      <button class="blue" onclick="addRun('opp',2)">Opp +2</button>
+      <button class="secondary" onclick="addRun('opp',-1)">Opp -1</button>
+      <button class="secondary" onclick="addRun('us',1)">Us +1</button>
     </div>
   </div>
 
@@ -77,24 +83,35 @@
       <button class="secondary" onclick="setOuts((state.outs+1)%3)">+ Out</button>
       <button class="secondary" onclick="changeInning(1)">+ Inning</button>
     </div>
+  </div>
+
+  <div class="card">
+    <h3>Runner Positions</h3>
     <div class="grid grid3" style="margin-top:8px">
       <button id="base1" class="secondary base" onclick="toggleBase('first')">1B</button>
       <button id="base2" class="secondary base" onclick="toggleBase('second')">2B</button>
       <button id="base3" class="secondary base" onclick="toggleBase('third')">3B</button>
     </div>
+    <div class="grid grid4" style="margin-top:8px">
+      <button class="secondary" onclick="advanceAll(false)">Advance All</button>
+      <button class="secondary" onclick="advanceAll(true)">PB Adv + Score</button>
+      <button class="secondary" onclick="clearBases()">Clear Bases</button>
+      <button class="secondary" onclick="runnerOut()">Runner Out</button>
+    </div>
+    <div class="grid grid3" style="margin-top:8px">
+      <button class="secondary" onclick="setBases(false,false,false)">Empty</button>
+      <button class="secondary" onclick="setBases(true,false,false)">Runner 1B</button>
+      <button class="secondary" onclick="setBases(false,true,false)">Runner 2B</button>
+      <button class="secondary" onclick="setBases(false,false,true)">Runner 3B</button>
+      <button class="secondary" onclick="setBases(true,true,false)">1st/2nd</button>
+      <button class="secondary" onclick="setBases(true,true,true)">Loaded</button>
+    </div>
   </div>
 
   <div class="card">
     <div class="top">
-      <div>
-        <div class="muted">Current Batter</div>
-        <h2 id="currentBatter"></h2>
-        <div id="lastAB" class="tag"></div>
-      </div>
-      <div class="grid grid2">
-        <button class="secondary small" onclick="prevBatter()">Prev</button>
-        <button class="small" onclick="nextBatter()">Next</button>
-      </div>
+      <div><div class="muted">Current Batter</div><h2 id="currentBatter"></h2><div id="lastAB" class="tag"></div></div>
+      <div class="grid grid2"><button class="secondary small" onclick="prevBatter()">Prev</button><button class="small" onclick="nextBatter()">Next</button></div>
     </div>
     <div class="grid grid2" style="margin-top:12px">
       <input id="jerseyInput" placeholder="Jersey #" onchange="updateCurrent('jersey',this.value)" />
@@ -107,135 +124,90 @@
   <div class="card">
     <h3>Quick Result</h3>
     <div class="quick" style="margin-top:10px">
-      <button onclick="record('K',true)">K</button><button onclick="record('BB',false)">BB</button><button onclick="record('HBP',false)">HBP</button><button onclick="record('1B',false)">1B</button>
-      <button onclick="record('2B',false)">2B</button><button onclick="record('3B',false)">3B</button><button onclick="record('HR',false)">HR</button><button onclick="record('Bunt 1B',false)">Bunt 1B</button>
-      <button onclick="record('FO 7',true)">FO 7</button><button onclick="record('FO 8',true)">FO 8</button><button onclick="record('FO 9',true)">FO 9</button><button onclick="record('FO 4',true)">FO 4</button>
-      <button onclick="record('GO 6-3',true)">GO 6-3</button><button onclick="record('GO 5-3',true)">GO 5-3</button><button onclick="record('GO 4-3',true)">GO 4-3</button><button onclick="record('E5',false)">E5</button>
-      <button onclick="record('E6',false)">E6</button><button onclick="record('FC',true)">FC</button><button class="secondary" onclick="passedBall()">PB Adv</button><button class="secondary" onclick="caughtStealing()">CS</button>
+      <button onclick="record('K',true,0)">K</button><button onclick="record('BB',false,basesLoaded()?1:0,'walk')">BB</button><button onclick="record('HBP',false,basesLoaded()?1:0,'hbp')">HBP</button><button onclick="record('1B',false,0,'single')">1B</button>
+      <button onclick="record('2B',false,0,'double')">2B</button><button onclick="record('3B',false,0,'triple')">3B</button><button onclick="recordHR()">HR</button><button onclick="record('Bunt 1B',false,0,'single')">Bunt 1B</button>
+      <button onclick="record('FO 7',true,0)">FO 7</button><button onclick="record('FO 8',true,0)">FO 8</button><button onclick="record('FO 9',true,0)">FO 9</button><button onclick="record('FO 4',true,0)">FO 4</button>
+      <button onclick="record('GO 6-3',true,0)">GO 6-3</button><button onclick="record('GO 5-3',true,0)">GO 5-3</button><button onclick="record('GO 4-3',true,0)">GO 4-3</button><button onclick="record('E5',false,0)">E5</button>
+      <button onclick="record('E6',false,0)">E6</button><button onclick="record('FC',true,0)">FC</button><button class="secondary" onclick="advanceAll(true)">PB Adv</button><button class="secondary" onclick="runnerOut()">CS/Runner Out</button>
     </div>
     <div class="grid grid2" style="margin-top:10px">
       <input id="customResult" placeholder="Custom result" />
       <button onclick="recordCustom()">Save Custom</button>
     </div>
-    <div class="warning" style="margin-top:10px">Tip: To fix a past at-bat, tap the player in the lineup below, then edit any AB result or note.</div>
+    <div class="warning" style="margin-top:10px">Auto scoring: HR scores batter + occupied bases. BB/HBP scores 1 only if bases loaded. For hits/errors, use run buttons and runner buttons to stay accurate.</div>
   </div>
 
-  <div class="card">
-    <h3>Lineup + Editable ABs</h3>
-    <div id="lineup"></div>
-  </div>
+  <div class="card"><h3>Lineup + Editable ABs</h3><div id="lineup"></div></div>
+  <div class="card"><h3>Game Log</h3><div id="history" class="history"></div></div>
 
-  <div class="card">
-    <h3>Game Log</h3>
-    <div id="history" class="history"></div>
-  </div>
-
-  <div class="sticky">
-    <div class="grid grid2">
-      <button onclick="copySummary()">Copy Summary</button>
-      <button class="secondary" onclick="downloadSummary()">Download</button>
-    </div>
-  </div>
+  <div class="sticky"><div class="grid grid2"><button onclick="copySummary()">Copy Summary</button><button class="secondary" onclick="downloadSummary()">Download</button></div></div>
 </div>
 
-<div id="editorModal" class="modal">
-  <div class="modal-card">
-    <div class="top">
-      <h2 id="editorTitle"></h2>
-      <button class="secondary small" onclick="closeEditor()">Close</button>
-    </div>
-    <div id="editorBody" style="margin-top:12px"></div>
-  </div>
-</div>
-
-<div id="newGameModal" class="modal">
-  <div class="modal-card">
-    <h2>Start new game?</h2>
-    <p class="muted">This clears the current saved game on this phone.</p>
-    <div class="grid grid2">
-      <button class="danger" onclick="newGame()">Yes, clear it</button>
-      <button class="secondary" onclick="document.getElementById('newGameModal').classList.remove('show')">Cancel</button>
-    </div>
-  </div>
-</div>
+<div id="editorModal" class="modal"><div class="modal-card"><div class="top"><h2 id="editorTitle"></h2><button class="secondary small" onclick="closeEditor()">Close</button></div><div id="editorBody" style="margin-top:12px"></div></div></div>
+<div id="newGameModal" class="modal"><div class="modal-card"><h2>Start new game?</h2><p class="muted">This clears the current saved game on this phone.</p><div class="grid grid2"><button class="danger" onclick="newGame()">Yes, clear it</button><button class="secondary" onclick="document.getElementById('newGameModal').classList.remove('show')">Cancel</button></div></div></div>
 
 <script>
 const blankPlayer=(i)=>({spot:i+1,jersey:"",name:"",notes:"",abs:[]});
-let state=JSON.parse(localStorage.getItem("softballTrackerV2")||localStorage.getItem("softballTrackerV1")||"null")||{
-  team:"",lineupSize:10,inning:1,outs:0,current:0,bases:{first:false,second:false,third:false},
-  players:Array.from({length:10},(_,i)=>blankPlayer(i)),log:[]
+let old=JSON.parse(localStorage.getItem("softballTrackerV2")||localStorage.getItem("softballTrackerV1")||"null");
+let state=JSON.parse(localStorage.getItem("softballTrackerV3")||"null")||{
+  team:old?.team||"",lineupSize:old?.lineupSize||10,inning:old?.inning||1,outs:old?.outs||0,current:old?.current||0,
+  bases:old?.bases||{first:false,second:false,third:false},players:old?.players||Array.from({length:10},(_,i)=>blankPlayer(i)),
+  log:old?.log||[],score:{us:0,opp:0},inningRuns:{}
 };
 
-function persist(){localStorage.setItem("softballTrackerV2",JSON.stringify(state));render()}
+function persist(){localStorage.setItem("softballTrackerV3",JSON.stringify(state));render()}
 function render(){
-  document.getElementById("teamName").value=state.team||"";
-  document.getElementById("lineupSize").value=state.lineupSize;
-  document.getElementById("inningDisplay").textContent=state.inning;
-  document.getElementById("outsDisplay").textContent=state.outs;
-  document.getElementById("spotDisplay").textContent=state.current+1;
-  const p=state.players[state.current];
-  document.getElementById("currentBatter").textContent=playerLabel(p);
-  document.getElementById("lastAB").textContent="Last AB: "+lastAB(p);
-  document.getElementById("jerseyInput").value=p.jersey||"";
-  document.getElementById("nameInput").value=p.name||"";
-  document.getElementById("notesInput").value=p.notes||"";
-  ["first","second","third"].forEach(b=>document.getElementById(b==="first"?"base1":b==="second"?"base2":"base3").classList.toggle("on",!!state.bases[b]));
+  document.getElementById("teamName").value=state.team||"";document.getElementById("lineupSize").value=state.lineupSize;
+  document.getElementById("inningDisplay").textContent=state.inning;document.getElementById("outsDisplay").textContent=state.outs;document.getElementById("spotDisplay").textContent=state.current+1;
+  document.getElementById("ourScore").textContent=state.score.us;document.getElementById("oppScore").textContent=state.score.opp;document.getElementById("oppLabel").textContent=state.team||"Opponent";
+  const p=state.players[state.current];document.getElementById("currentBatter").textContent=playerLabel(p);document.getElementById("lastAB").textContent="Last AB: "+lastAB(p);
+  document.getElementById("jerseyInput").value=p.jersey||"";document.getElementById("nameInput").value=p.name||"";document.getElementById("notesInput").value=p.notes||"";
+  ["first","second","third"].forEach(b=>document.getElementById(b==="first"?"base1":b==="second"?"base2":"base3").classList.toggle("runner",!!state.bases[b]));
   document.getElementById("lineup").innerHTML=state.players.map((p,i)=>`
     <div class="row ${i===state.current?'active':''}">
-      <div class="row-head" onclick="setCurrent(${i})">
-        <strong>${playerLabel(p)}</strong><span class="muted">${p.abs.length} AB</span>
-      </div>
-      <div class="tag">Last AB: ${escapeHtml(lastAB(p))}</div>
-      ${p.notes?`<div class="muted" style="margin-top:6px">${escapeHtml(p.notes)}</div>`:""}
+      <div class="row-head" onclick="setCurrent(${i})"><strong>${playerLabel(p)}</strong><span class="muted">${p.abs.length} AB</span></div>
+      <div class="tag">Last AB: ${escapeHtml(lastAB(p))}</div>${p.notes?`<div class="muted" style="margin-top:6px">${escapeHtml(p.notes)}</div>`:""}
       <button class="secondary small" style="margin-top:8px" onclick="openPlayerEditor(${i})">Edit ABs</button>
     </div>`).join("");
   document.getElementById("history").textContent=state.log.slice().reverse().join("\n");
 }
 function playerLabel(p){return `${p.spot}. ${p.jersey?"#"+p.jersey:"No #"} ${p.name||""}`.trim()}
 function lastAB(p){return p.abs.length?p.abs[p.abs.length-1].result:"None"}
-function setCurrent(i){state.current=i;persist()}
-function nextBatter(){state.current=(state.current+1)%state.players.length;persist()}
-function prevBatter(){state.current=(state.current-1+state.players.length)%state.players.length;persist()}
+function basesLoaded(){return state.bases.first&&state.bases.second&&state.bases.third}
+function occupiedBases(){return (state.bases.first?1:0)+(state.bases.second?1:0)+(state.bases.third?1:0)}
+function setCurrent(i){state.current=i;persist()}function nextBatter(){state.current=(state.current+1)%state.players.length;persist()}function prevBatter(){state.current=(state.current-1+state.players.length)%state.players.length;persist()}
 function updateCurrent(field,val){state.players[state.current][field]=val;persist()}
-function setLineupSize(size){
-  state.lineupSize=size;
-  while(state.players.length<size)state.players.push(blankPlayer(state.players.length));
-  if(state.players.length>size)state.players=state.players.slice(0,size);
-  if(state.current>=size)state.current=size-1;
+function setLineupSize(size){state.lineupSize=size;while(state.players.length<size)state.players.push(blankPlayer(state.players.length));if(state.players.length>size)state.players=state.players.slice(0,size);if(state.current>=size)state.current=size-1;persist()}
+function setOuts(n){state.outs=n;persist()}function changeInning(d){state.inning=Math.max(1,state.inning+d);persist()}
+function toggleBase(b){state.bases[b]=!state.bases[b];persist()}function setBases(a,b,c){state.bases={first:a,second:b,third:c};persist()}function clearBases(){state.bases={first:false,second:false,third:false};persist()}
+function addRun(team,n){state.score[team]=Math.max(0,state.score[team]+n);state.log.push(`Inning ${state.inning}: ${team==="opp"?"Opponent":"Us"} ${n>0?"+":""}${n} run`);persist()}
+function scoreOpp(n){if(n>0){state.score.opp+=n;state.inningRuns[state.inning]=(state.inningRuns[state.inning]||0)+n;state.log.push(`Inning ${state.inning}: Opponent +${n} run${n>1?"s":""}`)}}
+function advanceAll(scoreFromThird){
+  let scored=0;
+  if(state.bases.third){ if(scoreFromThird) scored++; state.bases.third=false; }
+  if(state.bases.second){ state.bases.third=true; state.bases.second=false; }
+  if(state.bases.first){ state.bases.second=true; state.bases.first=false; }
+  if(scored)scoreOpp(scored);
+  state.log.push(`Inning ${state.inning}: runners advanced`);
   persist();
 }
-function setOuts(n){state.outs=n;persist()}
-function changeInning(d){state.inning=Math.max(1,state.inning+d);persist()}
-function toggleBase(b){state.bases[b]=!state.bases[b];persist()}
+function runnerOut(){state.outs++;state.log.push(`Inning ${state.inning}: runner out / caught stealing`);if(state.outs>=3){endInning()}persist()}
+function endInning(){state.log.push(`END INNING ${state.inning}`);state.outs=0;state.inning++;clearBasesNoRender()}
+function clearBasesNoRender(){state.bases={first:false,second:false,third:false}}
 
-function record(result,isOut){
-  const p=state.players[state.current];
-  p.abs.push({inning:state.inning,result,note:""});
-  state.log.push(`Inning ${state.inning}: ${playerLabel(p)} — ${result}`);
+function record(result,isOut,runs=0,type=""){
+  const p=state.players[state.current];p.abs.push({inning:state.inning,result,note:""});state.log.push(`Inning ${state.inning}: ${playerLabel(p)} — ${result}`);
+  if(runs)scoreOpp(runs);
+  if(type==="walk"||type==="hbp"){ if(basesLoaded()){ state.bases.third=true;state.bases.second=true;state.bases.first=true; } else state.bases.first=true; }
+  if(type==="single")state.bases.first=true;
+  if(type==="double"){state.bases.second=true;state.bases.first=false}
+  if(type==="triple"){state.bases.third=true;state.bases.first=false;state.bases.second=false}
   if(isOut)state.outs++;
-  if(state.outs>=3){state.log.push(`END INNING ${state.inning}`);state.outs=0;state.inning++;state.bases={first:false,second:false,third:false}}
-  state.current=(state.current+1)%state.players.length;
-  persist();
+  if(state.outs>=3)endInning();
+  state.current=(state.current+1)%state.players.length;persist();
 }
-function recordCustom(){
-  const v=document.getElementById("customResult").value.trim();
-  if(!v)return;
-  const isOut=/(out|fo|go|k|cs|dp|lineout|flyout|groundout|caught)/i.test(v);
-  document.getElementById("customResult").value="";
-  record(v,isOut);
-}
-function passedBall(){
-  state.log.push(`Inning ${state.inning}: Passed ball / runners advanced`);
-  if(state.bases.third)state.bases.third=false;
-  if(state.bases.second){state.bases.third=true;state.bases.second=false}
-  if(state.bases.first){state.bases.second=true;state.bases.first=false}
-  persist();
-}
-function caughtStealing(){
-  state.log.push(`Inning ${state.inning}: Runner caught stealing`);
-  state.outs++;
-  persist();
-}
+function recordHR(){const runs=occupiedBases()+1;record("HR",false,runs);clearBasesNoRender();persist()}
+function recordCustom(){const v=document.getElementById("customResult").value.trim();if(!v)return;const isOut=/(out|fo|go|k|cs|dp|lineout|flyout|groundout|caught)/i.test(v);document.getElementById("customResult").value="";record(v,isOut,0)}
 
 let editingIndex=null;
 function openPlayerEditor(i){editingIndex=i;renderEditor();document.getElementById("editorModal").classList.add("show")}
@@ -244,37 +216,16 @@ function renderEditor(){
   const p=state.players[editingIndex];
   document.getElementById("editorTitle").textContent=playerLabel(p);
   document.getElementById("editorBody").innerHTML=`
-    <div class="grid grid2">
-      <input value="${escapeAttr(p.jersey)}" placeholder="Jersey #" oninput="state.players[${editingIndex}].jersey=this.value;persist();renderEditor()">
-      <input value="${escapeAttr(p.name)}" placeholder="Name" oninput="state.players[${editingIndex}].name=this.value;persist();renderEditor()">
-    </div>
+    <div class="grid grid2"><input value="${escapeAttr(p.jersey)}" placeholder="Jersey #" oninput="state.players[${editingIndex}].jersey=this.value;persist();renderEditor()"><input value="${escapeAttr(p.name)}" placeholder="Name" oninput="state.players[${editingIndex}].name=this.value;persist();renderEditor()"></div>
     <textarea placeholder="Player notes/tendencies" oninput="state.players[${editingIndex}].notes=this.value;persist()">${escapeHtml(p.notes||"")}</textarea>
     <button class="good" style="width:100%;margin-top:8px" onclick="addManualAB(${editingIndex})">Add Manual AB</button>
-    ${p.abs.length?p.abs.map((ab,j)=>`
-      <div class="ab">
-        <strong>AB ${j+1} — Inning ${ab.inning||""}</strong>
-        <div class="grid grid2" style="margin-top:8px">
-          <input value="${escapeAttr(ab.result||"")}" placeholder="Result" oninput="state.players[${editingIndex}].abs[${j}].result=this.value;persist();">
-          <input value="${escapeAttr(ab.inning||"")}" placeholder="Inning" oninput="state.players[${editingIndex}].abs[${j}].inning=this.value;persist();">
-        </div>
-        <textarea placeholder="AB note/correction" oninput="state.players[${editingIndex}].abs[${j}].note=this.value;persist();">${escapeHtml(ab.note||"")}</textarea>
-        <button class="danger small" onclick="deleteAB(${editingIndex},${j})">Delete this AB</button>
-      </div>`).join(""):`<p class="muted">No at-bats saved for this player yet.</p>`}
-  `;
+    ${p.abs.length?p.abs.map((ab,j)=>`<div class="ab"><strong>AB ${j+1} — Inning ${ab.inning||""}</strong><div class="grid grid2" style="margin-top:8px"><input value="${escapeAttr(ab.result||"")}" placeholder="Result" oninput="state.players[${editingIndex}].abs[${j}].result=this.value;persist();"><input value="${escapeAttr(ab.inning||"")}" placeholder="Inning" oninput="state.players[${editingIndex}].abs[${j}].inning=this.value;persist();"></div><textarea placeholder="AB note/correction" oninput="state.players[${editingIndex}].abs[${j}].note=this.value;persist();">${escapeHtml(ab.note||"")}</textarea><button class="danger small" onclick="deleteAB(${editingIndex},${j})">Delete this AB</button></div>`).join(""):`<p class="muted">No at-bats saved for this player yet.</p>`}`;
 }
 function addManualAB(i){state.players[i].abs.push({inning:state.inning,result:"",note:""});persist();renderEditor()}
 function deleteAB(i,j){if(confirm("Delete this AB?")){state.players[i].abs.splice(j,1);persist();renderEditor()}}
 function openNewGame(){document.getElementById("newGameModal").classList.add("show")}
-function newGame(){
-  state={team:"",lineupSize:10,inning:1,outs:0,current:0,bases:{first:false,second:false,third:false},players:Array.from({length:10},(_,i)=>blankPlayer(i)),log:[]};
-  document.getElementById("newGameModal").classList.remove("show");persist();
-}
-function summary(){
-  return `${state.team||"Softball Game"}\n\n`+state.players.map(p=>{
-    const abs=p.abs.map((ab,i)=>`AB${i+1}: ${ab.result}${ab.note?" — "+ab.note:""}`).join("\n");
-    return `${playerLabel(p)}\nLast AB: ${lastAB(p)}\n${abs||"No AB tracked"}\nNotes: ${p.notes||""}`;
-  }).join("\n\n");
-}
+function newGame(){state={team:"",lineupSize:10,inning:1,outs:0,current:0,bases:{first:false,second:false,third:false},players:Array.from({length:10},(_,i)=>blankPlayer(i)),log:[],score:{us:0,opp:0},inningRuns:{}};document.getElementById("newGameModal").classList.remove("show");persist()}
+function summary(){return `${state.team||"Softball Game"}\nScore: Us ${state.score.us} - Opponent ${state.score.opp}\n\n`+state.players.map(p=>{const abs=p.abs.map((ab,i)=>`AB${i+1}: ${ab.result}${ab.note?" — "+ab.note:""}`).join("\n");return `${playerLabel(p)}\nLast AB: ${lastAB(p)}\n${abs||"No AB tracked"}\nNotes: ${p.notes||""}`}).join("\n\n")}
 function copySummary(){navigator.clipboard.writeText(summary());alert("Summary copied")}
 function downloadSummary(){const blob=new Blob([summary()],{type:"text/plain"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="softball-game-summary.txt";a.click()}
 function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
