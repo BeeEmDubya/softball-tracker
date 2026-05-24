@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Softball Outfield Tracker</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --line: #cbd5e1;
+      --accent: #0f172a;
+      --good: #dcfce7;
+      --warn: #fef9c3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      padding: 12px;
+    }
+    h1, h2, h3 { margin: 0; }
+    .app { max-width: 900px; margin: 0 auto; padding-bottom: 80px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, .06);
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    input, textarea, select {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: white;
+    }
+    textarea { min-height: 70px; resize: vertical; }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 15px;
+      font-weight: 700;
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+    }
+    button.secondary { background: #e2e8f0; color: #0f172a; }
+    button.danger { background: #dc2626; }
+    button.small { padding: 8px 10px; font-size: 13px; }
+    .grid { display: grid; gap: 8px; }
+    .grid2 { grid-template-columns: 1fr 1fr; }
+    .grid3 { grid-template-columns: repeat(3, 1fr); }
+    .grid4 { grid-template-columns: repeat(4, 1fr); }
+    .muted { color: var(--muted); font-size: 13px; }
+    .big { font-size: 28px; font-weight: 900; }
+    .status {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      text-align: center;
+    }
+    .pill {
+      background: #f1f5f9;
+      border-radius: 12px;
+      padding: 10px;
+      border: 1px solid var(--line);
+    }
+    .bases {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .base.on { background: var(--good); border-color: #22c55e; }
+    .quick {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .quick button { min-height: 46px; }
+    .lineup-row {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: white;
+    }
+    .lineup-row.active {
+      border: 2px solid #0f172a;
+      background: #f8fafc;
+    }
+    .row-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+    }
+    .tag {
+      display: inline-block;
+      background: #e2e8f0;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .history {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: pre-wrap;
+      font-size: 13px;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 12px;
+      border-radius: 12px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    .sticky {
+      position: sticky;
+      bottom: 0;
+      background: rgba(248,250,252,.94);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--line);
+      padding: 10px 0 0;
+    }
+    @media (max-width: 520px) {
+      .grid4 { grid-template-columns: repeat(3, 1fr); }
+      .quick { grid-template-columns: repeat(3, 1fr); }
+      .big { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="card">
+      <div class="top">
+        <div>
+          <h1>Softball Outfield Tracker</h1>
+          <div class="muted">Fast live charting for opposing hitters</div>
+        </div>
+        <button class="secondary small" onclick="newGame()">New Game</button>
+      </div>
+      <div class="grid grid2" style="margin-top:12px;">
+        <input id="teamName" placeholder="Team name" oninput="save()" />
+        <select id="lineupSize" onchange="setLineupSize(Number(this.value))">
+          <option value="9">9 batters</option>
+          <option value="10">10 batters</option>
+          <option value="11">11 batters</option>
+          <option value="12">12 batters</option>
+          <option value="13">13 batters</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="status">
+        <div class="pill">
+          <div class="muted">Inning</div>
+          <div class="big" id="inningDisplay">1</div>
+        </div>
+        <div class="pill">
+          <div class="muted">Outs</div>
+          <div class="big" id="outsDisplay">0</div>
+        </div>
+        <div class="pill">
+          <div class="muted">Batter</div>
+          <div class="big" id="batterSpotDisplay">1</div>
+        </div>
+      </div>
+      <div class="grid grid3" style="margin-top:8px;">
+        <button class="secondary" onclick="changeInning(-1)">- Inning</button>
+        <button class="secondary" onclick="setOuts((state.outs+1)%3)">+ Out</button>
+        <button class="secondary" onclick="changeInning(1)">+ Inning</button>
+      </div>
+      <div class="bases">
+        <button id="base1" class="secondary base" onclick="toggleBase('first')">1B</button>
+        <button id="base2" class="secondary base" onclick="toggleBase('second')">2B</button>
+        <button id="base3" class="secondary base" onclick="toggleBase('third')">3B</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="top">
+        <div>
+          <div class="muted">Current Batter</div>
+          <h2 id="currentBatter">#1</h2>
+          <div id="lastAB" class="tag">Last AB: None</div>
+        </div>
+        <div class="grid grid2">
+          <button class="secondary small" onclick="prevBatter()">Prev</button>
+          <button class="small" onclick="nextBatter()">Next</button>
+        </div>
+      </div>
+
+      <div class="grid grid2" style="margin-top:12px;">
+        <input id="jerseyInput" placeholder="Jersey #" onchange="updateCurrent('jersey', this.value)" />
+        <input id="nameInput" placeholder="Name optional" onchange="updateCurrent('name', this.value)" />
+      </div>
+
+      <textarea id="tendencyInput" placeholder="Tendencies/notes: pull hitter, bunt, speed, weak RF, hard to LF..." onchange="updateCurrent('notes', this.value)"></textarea>
+    </div>
+
+    <div class="card">
+      <h3>Quick Result</h3>
+      <div class="quick" style="margin-top:10px;">
+        <button onclick="record('K', true)">K</button>
+        <button onclick="record('BB', false)">BB</button>
+        <button onclick="record('HBP', false)">HBP</button>
+        <button onclick="record('1B', false)">1B</button>
+        <button onclick="record('2B', false)">2B</button>
+        <button onclick="record('3B', false)">3B</button>
+        <button onclick="record('HR', false)">HR</button>
+        <button onclick="record('Bunt 1B', false)">Bunt 1B</button>
+        <button onclick="record('FO 7', true)">FO 7</button>
+        <button onclick="record('FO 8', true)">FO 8</button>
+        <button onclick="record('FO 9', true)">FO 9</button>
+        <button onclick="record('FO 4', true)">FO 4</button>
+        <button onclick="record('GO 6-3', true)">GO 6-3</button>
+        <button onclick="record('GO 5-3', true)">GO 5-3</button>
+        <button onclick="record('GO 4-3', true)">GO 4-3</button>
+        <button onclick="record('E5', false)">E5</button>
+        <button onclick="record('E6', false)">E6</button>
+        <button onclick="record('FC', true)">FC</button>
+        <button onclick="recordCustom()">Custom</button>
+        <button class="secondary" onclick="passedBall()">PB Adv</button>
+        <button class="secondary" onclick="caughtStealing()">CS</button>
+        <button class="danger" onclick="undo()">Undo</button>
+      </div>
+      <input id="customResult" style="margin-top:10px;" placeholder="Custom result: hard LD 7, bunt out 1-3, single to 6..." />
+    </div>
+
+    <div class="card">
+      <h3>Lineup + Last AB</h3>
+      <div id="lineup"></div>
+    </div>
+
+    <div class="card">
+      <h3>Game Log</h3>
+      <div id="history" class="history"></div>
+    </div>
+
+    <div class="sticky">
+      <div class="grid grid2">
+        <button onclick="copySummary()">Copy Summary</button>
+        <button class="secondary" onclick="downloadSummary()">Download</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const blankPlayer = (i) => ({ spot: i + 1, jersey: "", name: "", notes: "", abs: [] });
+
+let state = JSON.parse(localStorage.getItem("softballTrackerV1") || "null") || {
+  team: "",
+  lineupSize: 10,
+  inning: 1,
+  outs: 0,
+  current: 0,
+  bases: { first: false, second: false, third: false },
+  players: Array.from({length: 10}, (_, i) => blankPlayer(i)),
+  log: []
+};
+
+function save() {
+  state.team = document.getElementById("teamName").value;
+  localStorage.setItem("softballTrackerV1", JSON.stringify(state));
+  render();
+}
+
+function render() {
+  document.getElementById("teamName").value = state.team || "";
+  document.getElementById("lineupSize").value = state.lineupSize;
+  document.getElementById("inningDisplay").textContent = state.inning;
+  document.getElementById("outsDisplay").textContent = state.outs;
+  document.getElementById("batterSpotDisplay").textContent = state.current + 1;
+
+  const p = state.players[state.current];
+  const label = `${p.spot}. ${p.jersey ? "#" + p.jersey : "No #"} ${p.name || ""}`.trim();
+  document.getElementById("currentBatter").textContent = label;
+  document.getElementById("lastAB").textContent = `Last AB: ${lastAB(p)}`;
+  document.getElementById("jerseyInput").value = p.jersey || "";
+  document.getElementById("nameInput").value = p.name || "";
+  document.getElementById("tendencyInput").value = p.notes || "";
+
+  ["first","second","third"].forEach(base => {
+    document.getElementById(base === "first" ? "base1" : base === "second" ? "base2" : "base3")
+      .classList.toggle("on", !!state.bases[base]);
+  });
+
+  document.getElementById("lineup").innerHTML = state.players.map((x, i) => `
+    <div class="lineup-row ${i === state.current ? "active" : ""}" onclick="setCurrent(${i})">
+      <div class="row-head">
+        <strong>${x.spot}. ${x.jersey ? "#" + x.jersey : "No #"} ${x.name || ""}</strong>
+        <span class="muted">${x.abs.length} AB</span>
+      </div>
+      <div class="tag">Last AB: ${lastAB(x)}</div>
+      ${x.notes ? `<div class="muted" style="margin-top:6px;">${escapeHtml(x.notes)}</div>` : ""}
+    </div>
+  `).join("");
+
+  document.getElementById("history").textContent = state.log.slice().reverse().join("\n");
+}
+
+function lastAB(p) {
+  return p.abs.length ? p.abs[p.abs.length - 1].result : "None";
+}
+
+function updateCurrent(field, value) {
+  state.players[state.current][field] = value;
+  persist();
+}
+
+function setLineupSize(size) {
+  state.lineupSize = size;
+  if (state.players.length < size) {
+    while (state.players.length < size) state.players.push(blankPlayer(state.players.length));
+  } else {
+    state.players = state.players.slice(0, size);
+  }
+  if (state.current >= size) state.current = size - 1;
+  persist();
+}
+
+function setCurrent(i) {
+  state.current = i;
+  persist();
+}
+
+function nextBatter() {
+  state.current = (state.current + 1) % state.players.length;
+  persist();
+}
+
+function prevBatter() {
+  state.current = (state.current - 1 + state.players.length) % state.players.length;
+  persist();
+}
+
+function setOuts(n) {
+  state.outs = n;
+  if (state.outs >= 3) {
+    state.log.push(`END INNING ${state.inning}`);
+    state.outs = 0;
+    state.inning += 1;
+    state.bases = { first: false, second: false, third: false };
+  }
+  persist();
+}
+
+function changeInning(delta) {
+  state.inning = Math.max(1, state.inning + delta);
+  persist();
+}
+
+function toggleBase(base) {
+  state.bases[base] = !state.bases[base];
+  persist();
+}
+
+function record(result, isOut) {
+  const p = state.players[state.current];
+  p.abs.push({ inning: state.inning, result });
+  const name = `${p.jersey ? "#" + p.jersey : "Spot " + p.spot}${p.name ? " " + p.name : ""}`;
+  state.log.push(`Inning ${state.inning}: ${name} — ${result}`);
+  if (isOut) state.outs += 1;
+  if (state.outs >= 3) {
+    state.log.push(`END INNING ${state.inning}`);
+    state.outs = 0;
+    state.inning += 1;
+    state.bases = { first: false, second: false, third: false };
+  }
+  nextBatterNoRender();
+  persist();
+}
+
+function recordCustom() {
+  const v = document.getElementById("customResult").value.trim();
+  if (!v) return;
+  const isOut = /(out|fo|go|k|cs|dp|lineout|flyout|groundout)/i.test(v);
+  record(v, isOut);
+  document.getElementById("customResult").value = "";
+}
+
+function passedBall() {
+  state.log.push(`Inning ${state.inning}: Passed ball / runners advanced`);
+  if (state.bases.third) {
+    state.bases.third = false;
+  }
+  if (state.bases.second) {
+    state.bases.third = true;
+    state.bases.second = false;
+  }
+  if (state.bases.first) {
+    state.bases.second = true;
+    state.bases.first = false;
+  }
+  persist();
+}
+
+function caughtStealing() {
+  state.log.push(`Inning ${state.inning}: Runner caught stealing`);
+  state.outs += 1;
+  if (state.outs >= 3) {
+    state.log.push(`END INNING ${state.inning}`);
+    state.outs = 0;
+    state.inning += 1;
+    state.bases = { first: false, second: false, third: false };
+  }
+  persist();
+}
+
+function nextBatterNoRender() {
+  state.current = (state.current + 1) % state.players.length;
+}
+
+function undo() {
+  if (!state.log.length) return;
+  state.log.push("UNDO used — manually verify outs/bases if needed");
+  const p = state.players[(state.current - 1 + state.players.length) % state.players.length];
+  if (p && p.abs.length) p.abs.pop();
+  state.current = (state.current - 1 + state.players.length) % state.players.length;
+  persist();
+}
+
+function newGame() {
+  if (!confirm("Start a new blank game? This clears current data.")) return;
+  state = {
+    team: "",
+    lineupSize: 10,
+    inning: 1,
+    outs: 0,
+    current: 0,
+    bases: { first: false, second: false, third: false },
+    players: Array.from({length: 10}, (_, i) => blankPlayer(i)),
+    log: []
+  };
+  persist();
+}
+
+function summary() {
+  return `${state.team || "Softball Game"}\n\n` + state.players.map(p => {
+    const id = `${p.spot}. ${p.jersey ? "#" + p.jersey : "No #"} ${p.name || ""}`.trim();
+    const abs = p.abs.map((ab, i) => `AB${i+1}: ${ab.result}`).join("\n");
+    return `${id}\nLast AB: ${lastAB(p)}\n${abs || "No AB tracked"}\nNotes: ${p.notes || ""}`;
+  }).join("\n\n");
+}
+
+function copySummary() {
+  navigator.clipboard.writeText(summary());
+  alert("Summary copied.");
+}
+
+function downloadSummary() {
+  const blob = new Blob([summary()], {type: "text/plain"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "softball-game-summary.txt";
+  a.click();
+}
+
+function persist() {
+  localStorage.setItem("softballTrackerV1", JSON.stringify(state));
+  render();
+}
+
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
+render();
+</script>
+</body>
+</html>
